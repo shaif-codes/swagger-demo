@@ -1,13 +1,15 @@
 const {
   loginBodySchema,
   signupBodySchema,
-  authPayloadSchema
+  authPayloadSchema,
+  logoutBodySchema
 } = require("./auth.validation");
 
 const schemaDefs = {
   LoginRequest: loginBodySchema,
   SignupRequest: signupBodySchema,
-  AuthPayload: authPayloadSchema
+  AuthPayload: authPayloadSchema,
+  LogoutRequest: logoutBodySchema
 };
 
 const getDocs = ({ ref }) => ({
@@ -81,6 +83,24 @@ const getDocs = ({ ref }) => ({
             }
           },
           400: { $ref: "#/components/responses/BadRequest" }
+        }
+      }
+    },
+    "/admin/auth/logout": {
+      post: {
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: ref("admin_auth_LogoutRequest")
+            }
+          }
+        },
+        tags: ["01 Admin / Auth"],
+        summary: "Logout admin",
+        operationId: "admin.auth.logout",
+        responses: {
+          200: { $ref: "#/components/responses/Success" }
         }
       }
     }

@@ -10,5 +10,6 @@ const router = Router();
 
 router.post("/login", validate(loginBodySchema), controller.login);
 router.post("/signup", validate(signupBodySchema), controller.signup);
+router.post("/logout", controller.logout);
 
 module.exports = router;

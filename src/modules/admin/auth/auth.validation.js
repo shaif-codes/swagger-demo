@@ -18,4 +18,8 @@ const authPayloadSchema = Joi.object({
   token: Joi.string().required()
 });
 
-module.exports = { loginBodySchema, signupBodySchema, authPayloadSchema };
+const logoutBodySchema = Joi.object({
+  token: Joi.string().required()
+});
+
+module.exports = { loginBodySchema, signupBodySchema, authPayloadSchema, logoutBodySchema };
