@@ -1,0 +1,64 @@
+name: Cleanup Postman Preview Collection
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  cleanup-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Build preview collection name
+        run: |
+          RAW_BRANCH="${{ github.event.pull_request.head.ref }}"
+          SAFE_BRANCH=$(echo "$RAW_BRANCH" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9._-]/-/g')
+          echo "PREVIEW_COLLECTION_NAME=Swagger Demo [preview: ${SAFE_BRANCH}]" >> "$GITHUB_ENV"
+
+      - name: Delete preview Postman collection if exists
+        env:
+          POSTMAN_API_KEY: ${{ secrets.POSTMAN_API_KEY }}
+          POSTMAN_WORKSPACE_ID: ${{ secrets.POSTMAN_WORKSPACE_ID }}
+          PREVIEW_COLLECTION_NAME: ${{ env.PREVIEW_COLLECTION_NAME }}
+        run: |
+          node -e "
+          const apiKey = process.env.POSTMAN_API_KEY;
+          const workspaceId = process.env.POSTMAN_WORKSPACE_ID;
+          const name = process.env.PREVIEW_COLLECTION_NAME;
+          if (!apiKey || !workspaceId) {
+            console.error('Missing POSTMAN_API_KEY or POSTMAN_WORKSPACE_ID.');
+            process.exit(1);
+          }
+          const headers = { 'X-Api-Key': apiKey, 'Content-Type': 'application/json' };
+          const workspaceQuery = encodeURIComponent(workspaceId);
+          const listUrl = 'https://api.getpostman.com/collections?workspace=' + workspaceQuery;
+
+          fetch(listUrl, { headers })
+            .then(async (res) => {
+              const body = await res.json().catch(() => ({}));
+              if (!res.ok) {
+                throw new Error('Failed to list collections: ' + JSON.stringify(body));
+              }
+              const found = (body.collections || []).find((c) => c.name === name);
+              if (!found) {
+                console.log('No preview collection found for:', name);
+                return null;
+              }
+              const deleteUrl = 'https://api.getpostman.com/collections/' + found.uid;
+              const delRes = await fetch(deleteUrl, { method: 'DELETE', headers });
+              const delBody = await delRes.json().catch(() => ({}));
+              if (!delRes.ok) {
+                throw new Error('Failed to delete collection: ' + JSON.stringify(delBody));
+              }
+              console.log('Deleted preview collection:', found.uid);
+              return null;
+            })
+            .catch((error) => {
+              console.error(error.message);
+              process.exit(1);
+            });
+          "

@@ -30,6 +30,7 @@ npm run docs:sync:postman
 Workflow file:
 
 - `.github/workflows/postman-sync.yml`
+- `.github/workflows/postman-preview-cleanup.yml`
 
 Required GitHub secrets:
 
@@ -43,3 +44,4 @@ Required GitHub secrets:
 - Pull requests and non-main pushes upsert a preview collection in Postman workspace.
 - Preview collection name pattern:
   - `Swagger Demo [preview: <branch-name>]`
+- On `pull_request.closed`, preview collection cleanup runs and deletes that branch preview collection if it exists.
