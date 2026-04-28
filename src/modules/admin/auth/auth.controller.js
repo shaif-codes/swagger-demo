@@ -15,8 +15,14 @@ const signup = (req, res) => {
     ok("Admin signup successful", {
       id: "cc2f3802-3d8f-4888-9438-4f07f28a39f3",
       email: req.body.email,
-      token: "dummy-admin-signup-token"
+      token: "dummy-admin-signup-token-123"
     })
+  );
+};
+
+const logout = (req, res) => {
+  return res.status(200).json(
+    ok("Admin logout successful")
   );
 };
 

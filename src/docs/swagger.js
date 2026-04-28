@@ -37,6 +37,14 @@ const buildSwaggerDocument = () => {
     components: {
       schemas: registry.getSchemas(),
       responses: {
+        Success: {
+          description: "Success response",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ApiResponse" }
+            }
+          }
+        },
         BadRequest: {
           description: "Bad request",
           content: {
