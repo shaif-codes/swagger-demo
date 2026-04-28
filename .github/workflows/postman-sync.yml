@@ -1,0 +1,82 @@
+name: Sync OpenAPI to Postman
+
+on:
+  push:
+    paths:
+      - "src/**"
+      - "scripts/**"
+      - "package.json"
+      - ".github/workflows/postman-sync.yml"
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - "src/**"
+      - "scripts/**"
+      - "package.json"
+      - ".github/workflows/postman-sync.yml"
+  workflow_dispatch:
+
+jobs:
+  sync-postman-main:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Export OpenAPI JSON
+        run: npm run openapi:export
+
+      - name: Validate OpenAPI
+        run: npm run openapi:validate
+
+      - name: Sync Postman collection
+        env:
+          POSTMAN_API_KEY: ${{ secrets.POSTMAN_API_KEY }}
+          POSTMAN_COLLECTION_UID: ${{ secrets.POSTMAN_COLLECTION_UID }}
+          POSTMAN_FOLDER_STRATEGY: Paths
+        run: npm run postman:sync
+
+  sync-postman-preview:
+    if: github.ref != 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Export OpenAPI JSON
+        run: npm run openapi:export
+
+      - name: Validate OpenAPI
+        run: npm run openapi:validate
+
+      - name: Build preview collection name
+        run: |
+          RAW_BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
+          SAFE_BRANCH=$(echo "$RAW_BRANCH" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9._-]/-/g')
+          echo "POSTMAN_COLLECTION_NAME=Swagger Demo [preview: ${SAFE_BRANCH}]" >> "$GITHUB_ENV"
+
+      - name: Upsert preview Postman collection
+        env:
+          POSTMAN_API_KEY: ${{ secrets.POSTMAN_API_KEY }}
+          POSTMAN_WORKSPACE_ID: ${{ secrets.POSTMAN_WORKSPACE_ID }}
+          POSTMAN_FOLDER_STRATEGY: Paths
+        run: npm run postman:sync

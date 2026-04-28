@@ -1,0 +1,25 @@
+{
+  "dependencies": {
+    "express": "^5.2.1",
+    "joi": "^18.1.2",
+    "joi-to-swagger": "^6.2.0",
+    "swagger-ui-express": "^5.0.1"
+  },
+  "name": "swagger-demo",
+  "version": "1.0.0",
+  "private": true,
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "openapi:export": "node scripts/export-openapi.js",
+    "openapi:validate": "node scripts/validate-openapi.js openapi.generated.json",
+    "postman:sync": "node scripts/sync-postman.js openapi.generated.json",
+    "docs:sync:postman": "npm run openapi:export && npm run openapi:validate && npm run postman:sync"
+  },
+  "devDependencies": {
+    "@apidevtools/swagger-parser": "^12.1.0",
+    "dotenv": "^17.4.2",
+    "openapi-to-postmanv2": "^6.0.1"
+  }
+}
