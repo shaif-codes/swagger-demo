@@ -98,10 +98,7 @@ const getDocs = ({ ref }) => ({
         },
         tags: ["01 Admin / Auth"],
         summary: "Logout admin",
-        operationId: "admin.auth.logout",
-        responses: {
-          200: { $ref: "#/components/responses/Success" }
-        }
+        operationId: "admin.auth.logout"
       }
     }
   }
